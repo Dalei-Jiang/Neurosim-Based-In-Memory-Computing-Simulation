@@ -31,11 +31,11 @@ def email(body, subject):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
     # TODO input the sender email
-    sender_email = "sjzwyzmydz4869@gmail.com"
-    # TODO input password
-    sender_password = "wxhw ltlb mzpb yakh"  
+    sender_email = ""
+    # TODO input dual-certificated email password
+    sender_password = ""  
     # TODO input receiver email
-    recipient_email = "daleij@umich.edu"
+    recipient_email = ""
 
     subject = subject
     body = body

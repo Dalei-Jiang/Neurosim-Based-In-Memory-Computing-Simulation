@@ -23,9 +23,8 @@ update_period = 300
 decreasing_rate = 2.0
 num_classes = 6
 Label = 'GaN-Ideal-480-480-VSHS-NEW'
-# model_name = './resource/model_weights.pth'
 model_name = ''
-for i in range(1):
+for i in range(3):
     seed = random.randint(0, 99999) # 基于时间的变化，确保每次不同
     random.seed(seed)  # 设置随机数种子
     # 在这里执行其他操作，比如生成随机数

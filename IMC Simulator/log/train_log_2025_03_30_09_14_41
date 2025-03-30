@@ -1,0 +1,40 @@
+=================FLAGS==================
+type: GaN
+batch_size: 128
+epochs: 10000
+grad_scale: 0.5
+seed: 139
+log_interval: 1
+test_interval: 1
+logdir: log
+modeldir: model
+decreasing_lr: 
+wl_weight: 6
+wl_grad: 6
+wl_activate: 8
+wl_error: 8
+inference: 0
+onoffratio: 10
+cellBit: 6
+subArray: 128
+ADCprecision: 5
+vari: 0
+t: 0
+v: 0
+detect: 0
+target: 0
+nonlinearityLTPconv: 1.49
+nonlinearityLTDconv: -2.31
+nonlinearityLTPconnect: 1.49
+nonlinearityLTDconnect: -2.31
+max_level: 64
+c2cVari: 0.0
+d2dVari: 0.0
+========================================
+Sequential()
+Sequential(
+  (0): QLinear(in_features=480, out_features=480, bias=False)
+  (1): QLinear(in_features=480, out_features=480, bias=False)
+  (2): ReLU(inplace=True)
+  (3): QLinear(in_features=480, out_features=6, bias=False)
+)

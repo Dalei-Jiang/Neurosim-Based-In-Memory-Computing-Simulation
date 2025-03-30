@@ -148,7 +148,7 @@ def loading(datatype, batch_size, label, data_root='/tmp/public_dataset/pytorch'
             Xname = f'X_ScAlNmul3_{label}'
             yname = 'y_ScAlN_new'
         elif datatype == 'ScAlN_GaN':
-            Xname = 'X_ScAlN_GaN_resize'
+            Xname = 'X_ScAlN_GaN'
             yname = 'y_ScAlN_GaN'
         ds = []
         images = np.load(f"../../resource/{Xname}.npy")

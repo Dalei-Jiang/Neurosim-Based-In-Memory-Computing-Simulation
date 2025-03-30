@@ -10,7 +10,7 @@ from datetime import datetime
 from util import email
 from torch.autograd import Variable
 from cifar import dataset, Network
-from utee import misc, make_path, loss_func, wage_quantizer, hook, system_setting
+from utee import misc, make_path, loss_func, wage_quantizer, system_setting
 from tqdm import tqdm
 import warnings
 env = system_setting.check_script_execution()
@@ -20,15 +20,17 @@ warnings.filterwarnings(
     category=UserWarning,
 )
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Should be modified if the training environment changes@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-datachoice = 'N_VSHS'
+IsExperimental = True
+datachoice = 'VSHS'
+if IsExperimental:
+    datachoice = 'N_' + datachoice
 dataset_name = 'GaN'
 epoches_num = 10000
 model_name = ''
 log_perm = True
-Sim_B = False
 lr = 0.5
 decreasing_rate = 2.0
-update_period = 32 # 128
+update_period = 64
 tolerance = 5
 Label = f'{datachoice}-Linear'
 trial_time = 12
@@ -39,8 +41,8 @@ accuracy_list = []
 
 # 952
 for _ in range(trial_time):    
-    seed = random.randint(0, 99999) # 基于时间的变化，确保每次不同
-    random.seed(seed)  # 设置随机数种子
+    seed = random.randint(0, 99999)
+    random.seed(seed)
     rand_seed = random.randint(1, 1000)
     print(f"Generated random number: {rand_seed}")
     parser = argparse.ArgumentParser(description='PyTorch CIFAR-X Example')
@@ -75,10 +77,8 @@ for _ in range(trial_time):
     parser.add_argument('--nonlinearityLTDconnect', default=-0.01)  # Nonlinearity of LTD
     parser.add_argument('--max_level', default=100)
     parser.add_argument('--c2cVari', default=0) # cycle-to-cycle variance
-    
-    current_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     args = parser.parse_args()
-    
+    current_time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')    
     args.wl_weight = 6            # weight precision
     args.wl_grad = 6              # gradient precision
     args.cellBit = 6              # cell precision (in V2.0, we only support one-cell-per-synapse, i.e. cellBit==wl_weight==wl_grad)
@@ -121,13 +121,13 @@ for _ in range(trial_time):
         num_classes = 13
     else:
         num_classes = 6
-    # processkernel = kernel_list[kernel_select]
+
     train_loader, test_loader = dataset.loading(datatype=args.type, batch_size=args.batch_size, label=datachoice, num_workers=0, data_root=os.path.join(tempfile.gettempdir(), os.path.join('public_dataset','pytorch')))
     max_iterations = len(train_loader.dataset) // args.batch_size
     if model_name == '':
         model = Network.construct(args=args, logger=logger, num_classes=num_classes)
-        misc.model_save(model, 'Init.pth')
-        # print(model)
+        misc.model_save(model, os.path.join(args.modeldir, 'Init.pth'))
+        print(model)
     else:
         model_path = os.path.join(args.modeldir, model_name)
         model = torch.load(model_path)
@@ -136,7 +136,6 @@ for _ in range(trial_time):
         model.cuda()
     total_params = sum(p.numel() for p in model.parameters())
     optimizer = optim.SGD(model.parameters(), lr=lr)
-        
     best_acc, old_file = 0, None
     grad_scale = args.grad_scale
     
@@ -216,7 +215,6 @@ for _ in range(trial_time):
                                   torch.from_numpy(paramALTP[name]).cuda(), torch.from_numpy(paramALTD[name]).cuda(), args.max_level, args.max_level)
 # =======================================================================================================
                 optimizer.step()
-    
                 for name, param in list(model.named_parameters())[::-1]:
                     param.data = wage_quantizer.W(param.data,param.grad.data,args.wl_weight,args.c2cVari)
     
@@ -249,8 +247,6 @@ for _ in range(trial_time):
                 correct = 0
                 # logger("testing phase")
                 for i, (data, target) in enumerate(test_loader):
-                    if i==0:
-                        hook_handle_list = hook.hardware_evaluation(model,args.wl_weight,args.wl_activate,epoch,env)
                     indx_target = target.clone()
                     if args.cuda:
                         data, target = data.cuda(), target.cuda()
@@ -261,8 +257,6 @@ for _ in range(trial_time):
                         test_loss += test_loss_i.data
                         pred = output.data.max(1)[1]  # get the index of the max log-probability
                         correct += pred.cpu().eq(indx_target).sum()
-                    if i==0:
-                        hook.remove_hook_list(hook_handle_list)
                 
                 test_loss = test_loss / len(test_loader) # average over number of mini-batch
                 test_loss = test_loss.cpu().data.numpy()
@@ -284,24 +278,23 @@ for _ in range(trial_time):
                     best_acc = acc
                     print(f"    Epoch {epoch}: New peak accuracy reaching {best_acc:.4f}......")
                     old_file = new_file
-                if best_acc > report_best_acc:
-                    report_best_acc = best_acc
-                    body = f"Training Accuracy reaches {best_acc:.4f}"
-                    subject = "Training acuuracy break throughs!"
-                    email(body, subject)
-                    
-        
+                # # Email to target address when accuracy meets standard
+                # if best_acc > report_best_acc:
+                #     report_best_acc = best_acc
+                #     body = f"Training Accuracy reaches {best_acc:.4f}"
+                #     subject = "Training acuuracy break throughs!"
+                #     email(body, subject)
         #   Store all the npy files in related path
             if log_perm:
                 np.save(os.path.join(result_dir, f'train_{best_acc}.npy'),  train_log)
                 np.save(os.path.join(result_dir, f'test_{best_acc}.npy'),   test_log)
     accuracy_list.append(best_acc)
-    
+"""Email to operator's address when training is done
+   The mailing address and code need to be set in util.py"""
 #****************************************************************************************
-best_acc = max(accuracy_list)
-average_acc = np.mean(np.array(accuracy_list))
-body = "Training is complete!\nTotal Elapse: {:.2f} minutes\nBest Result: {:.4f}%\nAverage accuracy: {:.4f}%".format((time.time()-t_begin)/60.0, best_acc, average_acc)
-subject = f"Notification: {datachoice} Training completed"
-email(body, subject)
-
+# best_acc = max(accuracy_list)
+# average_acc = np.mean(np.array(accuracy_list))
+# body = "Training is complete!\nTotal Elapse: {:.2f} minutes\nBest Result: {:.4f}%\nAverage accuracy: {:.4f}%".format((time.time()-t_begin)/60.0, best_acc, average_acc)
+# subject = f"Notification: {datachoice} Training completed"
+# email(body, subject)
 #******************************************************************************************
