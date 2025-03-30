@@ -151,9 +151,9 @@ def loading(datatype, batch_size, label, data_root='/tmp/public_dataset/pytorch'
             Xname = 'X_ScAlN_GaN_resize'
             yname = 'y_ScAlN_GaN'
         ds = []
-        images = np.load(f"./resource/{Xname}.npy")
+        images = np.load(f"../../resource/{Xname}.npy")
         print(f"{Xname} is loaded!")
-        labels = np.load(f"./resource/{yname}.npy")
+        labels = np.load(f"../../resource/{yname}.npy")
         sample_number = images.shape[0]
         ratio1 = 0.8
         ratio2 = 1.0
