@@ -20,7 +20,7 @@ The file *DataGenerator* in the folder **DatasetOperator** is working to transfo
 3. Index: The videos with same material type and the same score are stored in a same folder, input actual index number to get related video. 
 4. Video Number: In the previous step, we have divide a long video into clips to optimize following function complexity, mainly showing in this step. Here, input the number of videos cut from the previous step. The function will go through all the clips and truncate the images and pack as a whole array. 
 The user can also use VideoLength // ClipLength + 1 as Video Number.
-5. offerset1: The first index location of $\left[10\bar{1}0\right]$, the following images will be fetched by constant step $fraction{FrameRate, RotationSpeed}$
+5. offerset1: The first index location of $\left[10\bar{1}0\right]$, the following images will be fetched by constant step $\frac{FrameRate}{RotationSpeed}$
 
 ### From resized dataset to convoluted result (Network Input)
 The resized dataset is set to be a 4-dimentional array. Using *DataConv.py* to transfer resized dataset to convoluted feature map. The result feature map will be input into the network. After trying the combination of different kernels, the best match will be the vertical Sobel and horizontal Sobel. The detail of different kernel combinations are shown in Visualization/Binprinter.ipynb
