@@ -20,7 +20,10 @@ The file *DataGenerator* in the folder **DatasetOperator** is working to transfo
 3. Index: The videos with same material type and the same score are stored in a same folder, input actual index number to get related video. 
 4. Video Number: In the previous step, we have divide a long video into clips to optimize following function complexity, mainly showing in this step. Here, input the number of videos cut from the previous step. The function will go through all the clips and truncate the images and pack as a whole array. 
 The user can also use VideoLength // ClipLength + 1 as Video Number.
-5. offerset1: The first index location of $\left[10\bar{1}0\right]$, the following images will be fetched by constant step $\frac{FrameRate}{RotationSpeed}$
+5. offset1: The first index location of $\left[10\bar{1}0\right]$, the following images will be fetched by constant index step $\frac{FrameRate}{RotationSpeed}$.
+6. offset2: The first index location of $\left[1\bar{1}20\right]$. When doing sampling, the images with less than 5 degree will be the high quality images. That is to say, in a 2.5-second video, 6 frames will be packed into the result array.
+7. Center: The Central Spot Location functions can determine the central point location, remove the target point to the center of image, normalize the image into 360*600 to achieve normalization.
+Let's raise an example, if we have a 10-min video, we will firstly determine its parameters, and the file will be convert into a (1440,1,360,600) array.
 
 ### From resized dataset to convoluted result (Network Input)
 The resized dataset is set to be a 4-dimentional array. Using *DataConv.py* to transfer resized dataset to convoluted feature map. The result feature map will be input into the network. After trying the combination of different kernels, the best match will be the vertical Sobel and horizontal Sobel. The detail of different kernel combinations are shown in Visualization/Binprinter.ipynb
